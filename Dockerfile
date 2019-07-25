@@ -14,9 +14,10 @@ RUN apt-get update \
         apt-utils curl libcairo2-dev fonts-dejavu libfreetype6-dev \
         uwsgi-plugin-python \
     # Node.js
-    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
-    && apt-get -qy install --fix-missing --no-install-recommends \
-        nodejs \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash \
+    #&& curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+    #&& apt-get -y install --fix-missing --no-install-recommends \
+    #    nodejs \
     # Slim down image
     && apt-get clean autoclean \
     && apt-get autoremove -y \
@@ -26,6 +27,17 @@ RUN apt-get update \
 
 # Include /usr/local/bin in path.
 RUN echo "export PATH=${PATH}:/usr/local/bin >> ~/.bashrc"
+
+# Handle NodeJS installation Better
+ENV NVM_DIR /root/.nvm
+ENV NODE_VERSION 6.17.1
+RUN chmod +x $NVM_DIR/nvm.sh \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm alias default $NODE_VERSION \
+    && nvm use default
+ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 # Basic Python tools
 RUN pip install --upgrade pip setuptools ipython wheel uwsgi pipdeptree
